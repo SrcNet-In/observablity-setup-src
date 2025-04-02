@@ -1,0 +1,42 @@
+# values.yaml
+
+prometheus:
+  prometheusSpec:
+    # Define the persistent storage for Prometheus
+    storageSpec:
+      volumeClaimTemplate:
+        metadata:
+          name: prometheus-pvc
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi  # Same size as in your PVC
+          storageClassName: nfs-default  # Same storage class as your PVC
+
+    # Set the retention period for Prometheus data
+    retention: "720h"  # 30 days retention (720 hours)
+    namespaceSelector: {}
+
+grafana:
+  persistence:
+    enabled: true
+    size: 5Gi  # Same size as in your PVC
+    storageClassName: nfs-default  # Same storage class as your PVC
+    existingClaim: grafana-pvc  # Reference the pre-created PVC
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        metadata:
+          name: alertmanager-pvc
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi  # Same size as in your PVC
+          storageClassName: nfs-default  # Same storage class as your PVC
+

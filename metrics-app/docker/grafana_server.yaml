@@ -1,0 +1,7 @@
+version: '3'
+services:
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3030:3000
+
