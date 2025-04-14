@@ -1,7 +1,7 @@
 
-# **Kubernetes Observability Tooling Setup**
+# **Kubernetes Observability Tooling**
 
-#  **Tech Stack Used**
+#  **Tech Stack**
 
 In our POC implementation for Kubernetes observability tooling for SRCNET Nodes, we have opted for the PLG stack—comprising of **Prometheus**, **Loki**, and **Grafana**—over the ELK stack (ElasticSearch, Logstash, and Kibana). 
 
