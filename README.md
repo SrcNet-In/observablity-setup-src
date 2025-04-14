@@ -3,15 +3,15 @@
 
 #  **Tech Stack Used**
 
-In the context of implementing Kubernetes observability tooling, specifically for logging in SRCNodes, we have opted for the PLG stack—comprising **Prometheus**, **Loki**, and **Grafana**—over the ELK stack (ElasticSearch, Logstash, and Kibana) as of now. This decision was driven by several key factors:
+In the context of implementing Kubernetes observability tooling, specifically for logging in SRCNET nodes, we have opted for the PLG stack—comprising **Prometheus**, **Loki**, and **Grafana**—over the ELK stack (ElasticSearch, Logstash, and Kibana) as of now. This stack offers the following features:
 
 1. **Kubernetes Native**: The PLG stack is inherently designed for Kubernetes environments, offering seamless integration with Kubernetes-based workloads and configurations. This makes it a more natural choice for our observability needs within a Kubernetes cluster.
 
-2. **Simplicity and Efficiency**: The PLG stack is known for its simplicity in setup and operation, while also being highly efficient in handling large volumes of data. It provides a streamlined approach to monitoring and logging, reducing complexity compared to the more generalized ELK stack.
+2. **Simple and Efficient**: The PLG stack is known for its simplicity in setup and operation, while also being highly efficient in handling large volumes of data. It provides a streamlined approach to monitoring and logging, reducing complexity compared to the more generalized ELK stack.
 
-3. **Scalability**: PLG is designed with scalability in mind, which is crucial for managing large-scale Kubernetes deployments. As our observability needs grow, PLG's architecture can easily scale to accommodate increased traffic and data volume.
+3. **Scalable**: PLG is designed with scalability in mind, which is crucial for managing large-scale Kubernetes deployments. As our observability needs grow, PLG's architecture can easily scale to accommodate increased traffic and data volume.
 
-4. **Performance and Maintenance**: In addition to its ease of use, the PLG stack offers high performance and low resource consumption, making it a better fit. 
+4. **Performent and Easy to Maintenance**: In addition to its ease of use, the PLG stack offers high performance and low resource consumption, making it a better fit. 
 
 ### **List of Tools** 
 
@@ -52,28 +52,19 @@ To set up the observability stack for SRCNodes, which includes Grafana, Promethe
 
 ### **Hardware Requirements** 
 
-	**CPU:** Minimum of 2 cores per node.​  
+**CPU:** Minimum of 2 cores per node.​  
 **Memory:** At least 2 GB of RAM per node  
 **Storage:** 20 GB of free disk space per node.  
-	**Networking:** Reliable network connectivity between nodes.​
-
-\*  Source of this data is observation and [linuxconfig.org](http://linuxconfig.org)  
+ 
 \*  Prometheus and Loki will require disk space for storing time-series metrics and logs when they are stored locally instead of cloud services like S3 or GCS.  
 \*  Tempo may also require significant storage depending on the retention period for traces.
 
 ### **Software Requirements** 
 
-**Kubernetes Cluster:** 1.19+ is required.   
-You can use any Kubernetes distribution such as 
-
-- Minikube (for local testing),   
-- GKE (Google Kubernetes Engine),   
-- EKS (Amazon Elastic Kubernetes Service),   
-- or any other cloud or on-premises Kubernetes deployment.
-
-	**Helm:** v3.x (or later) is required  
-	**kubectl:** 1.19+ is required  
-	**Container Runtime:** any container runtime with supported version
+**Kubernetes:** 1.19+ is required.   
+**Helm:** v3.x (or later) is required  
+**kubectl:** 1.19+ is required  
+**Container Runtime:** any container runtime with supported version
 
 # **Architecture Overview**
 
@@ -83,7 +74,7 @@ In this architecture, we are considering a **Kubernetes cluster** with two disti
 
 1. **Monitoring Namespace**: This namespace is dedicated to deploying the monitoring-related stack, including components such as **Prometheus**, **Loki**, **Tempo**, **Alloy** and **Grafana**.
 
-2. **Playground Namespace**: This namespace is where our test service is deployed. It serves as the target for monitoring and observability tasks, allowing us to collect and visualize metrics, logs, and traces.
+2. **Services Namespace**: This namespace is where our test service is deployed. It serves as the target for monitoring and observability tasks, allowing us to collect and visualize metrics, logs, and traces.
 
 The observability workflow encompasses three key paths:
 
