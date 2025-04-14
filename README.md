@@ -108,7 +108,7 @@ To capture logs from services running within our Kubernetes cluster, we utilize 
 
 To implement distributed tracing within our Kubernetes environment, we utilize **OpenTelemetry** for instrumentation, the **OpenTelemetry Collector** for collecting and exporting trace data, and **Grafana Tempo** for storing and visualizing traces. The process is structured as follows:
 
-1. **Instrument Services with OpenTelemetry SDKs**: Each service in the Playground Namespace is instrumented using OpenTelemetry SDKs. This involves integrating the appropriate OpenTelemetry libraries into the application code to capture trace data, such as request paths, durations, and dependencies.
+1. **Instrument Services with OpenTelemetry SDKs**: Each service in the Services Namespace is instrumented using OpenTelemetry SDKs. This involves integrating the appropriate OpenTelemetry libraries into the application code to capture trace data, such as request paths, durations, and dependencies.
 
 2. **Enable Auto-Instrumentation (Optional)**: For languages and frameworks that support it, auto-instrumentation is enabled to automatically capture trace data without manual code modifications. This approach simplifies the instrumentation process and ensures consistent trace data collection across services.  
 3. **Deploy the OpenTelemetry Collector**: The OpenTelemetry Collector is deployed within the Kubernetes cluster to receive, process, and export trace data. It acts as a telemetry gateway, collecting traces from instrumented services and forwarding them to the tracing backend.  
@@ -585,7 +585,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: k8s-app-http
-  namespace: playground
+  namespace: services
   labels:
     release: prometheus-stack
 spec:
@@ -641,8 +641,8 @@ tracer = trace.get_tracer(__name__)
 
 FastAPIInstrumentor.instrument_app(app)
 
-FAST_API_HOST = "test-app.playground.svc.cluster.local"
-SLOW_API_HOST = "test-app.playground.svc.cluster.local"
+FAST_API_HOST = "test-app.services.svc.cluster.local"
+SLOW_API_HOST = "test-app.services.svc.cluster.local"
 FAST_API_PORT = 3000
 SLOW_API_PORT = 3000
 
