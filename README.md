@@ -68,19 +68,21 @@ To set up the observability stack for SRCNodes, which includes Grafana, Promethe
 
 ![Image 1](./images/image_1.png)
 
-In our POC environment we created two namespaces:
+In our POC environment, we created two namespaces:
 
 1. **Monitoring Namespace**: This namespace is dedicated to deploying the monitoring-related stack, including components such as **Prometheus**, **Loki**, **Tempo**, **Alloy** and **Grafana**.
 
 2. **Services Namespace**: This namespace is where our test service is deployed. It serves as the target for monitoring and observability tasks, allowing us to collect and visualize metrics, logs, and traces.
 
-The observability workflow encompasses three key paths:
+The observability stack fullfills three requirments:
 
 * **Metrics Collection**: Metrics are fetched from **Prometheus** and visualized in **Grafana**.  
 * **Log Aggregation**: Logs are gathered by **Loki** and displayed in **Grafana**.  
 * **Distributed Tracing**: Traces are collected from **Tempo** and rendered in **Grafana**.
 
-### **Metrics Collection** 	To capture metrics from services into Prometheus, there are several approaches. One method used in this architecture is **Prometheus client integration**. The process involves the following steps:
+### **Metrics Collection** 	
+To capture metrics from services into Prometheus, there are several approaches. One method used in this architecture is **Prometheus client integration**. 
+The process involves the following steps:
 
 1. **Install Prometheus Client**: The Prometheus client is installed within the service.  
 2. **Configure Metrics and Endpoint**: The client is configured to collect the desired metrics and expose them via a dedicated endpoint.  
