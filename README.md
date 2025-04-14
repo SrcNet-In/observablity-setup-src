@@ -68,7 +68,7 @@ To set up the observability stack for SRCNodes, which includes Grafana, Promethe
 
 ![Image 1](./images/image_1.png)
 
-In this architecture, we are considering a **Kubernetes cluster** with two distinct namespaces:
+In our POC environment we created two namespaces:
 
 1. **Monitoring Namespace**: This namespace is dedicated to deploying the monitoring-related stack, including components such as **Prometheus**, **Loki**, **Tempo**, **Alloy** and **Grafana**.
 
