@@ -3,8 +3,8 @@
 
 #  **Tech Stack Used**
 
-In the context of implementing Kubernetes observability tooling, specifically for logging in SRCNET nodes, we have opted for the PLG stack—comprising **Prometheus**, **Loki**, and **Grafana**—over the ELK stack (ElasticSearch, Logstash, and Kibana) as of now. This stack offers the following features:
-
+In our POC implementation for Kubernetes observability tooling for SRCNET Nodes. we have opted for the PLG stack—comprising of **Prometheus**, **Loki**, and **Grafana**—over the ELK stack (ElasticSearch, Logstash, and Kibana). 
+This stack offers the following features:
 1. **Kubernetes Native**: The PLG stack is inherently designed for Kubernetes environments, offering seamless integration with Kubernetes-based workloads and configurations. This makes it a more natural choice for our observability needs within a Kubernetes cluster.
 
 2. **Simple and Efficient**: The PLG stack is known for its simplicity in setup and operation, while also being highly efficient in handling large volumes of data. It provides a streamlined approach to monitoring and logging, reducing complexity compared to the more generalized ELK stack.
