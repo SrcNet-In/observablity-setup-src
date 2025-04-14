@@ -61,10 +61,8 @@ To set up the observability stack for SRCNodes, which includes Grafana, Promethe
 
 ### **Software Requirements** 
 
-**Kubernetes:** 1.19+ is required.   
-**Helm:** v3.x (or later) is required  
-**kubectl:** 1.19+ is required  
-**Container Runtime:** any container runtime with supported version
+**Kubernetes:** 1.19 (or later)
+**Helm:** v3.x (or later)
 
 # **Architecture Overview**
 
