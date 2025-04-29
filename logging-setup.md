@@ -1,10 +1,10 @@
-# 🛠️ Observability Setup with Loki & Alloy in Kubernetes
+# Observability Setup with Loki & Alloy in Kubernetes
 
 This guide walks you through deploying **Grafana Loki** for log aggregation and **Grafana Alloy** for log collection in Kubernetes. Assuming **Grafana** is already installed and accessible.
 
 ---
 
-## 🧰 Tools Used
+## Tools Used
 
 - **Grafana Loki**: A log aggregation system tailored for Kubernetes.
 - **Grafana Alloy**: A lightweight, flexible collector for logs, metrics, and traces.
@@ -12,7 +12,7 @@ This guide walks you through deploying **Grafana Loki** for log aggregation and 
 
 ---
 
-## 🚀 Loki Installation (Monolithic Mode)
+## Loki Installation (Monolithic Mode)
 
 We'll install Loki in **monolithic mode** for this example, which is simpler and ideal for small to medium clusters. 
 
@@ -101,7 +101,7 @@ helm install loki grafana/loki -n monitoring -f values.yaml
 
 ---
 
-## 🏗️ Loki Deployment Modes
+## Loki Deployment Modes
 
 Loki supports three modes:
 
@@ -123,7 +123,7 @@ For more details on deployment modes, [see the Loki deployment modes documentati
 
 ---
 
-## 🪣 Storage & Retention
+## Storage & Retention
 
 Loki can use object storage like:
 
@@ -215,7 +215,7 @@ alloy:
 ```
 ---
 
-## 📦 Install Alloy with Helm
+## Install Alloy with Helm
 
 ```bash
 helm install alloy grafana/alloy -n monitoring -f values.yaml
@@ -223,7 +223,7 @@ helm install alloy grafana/alloy -n monitoring -f values.yaml
 
 ---
 
-## 📊 Add Loki as a Data Source in Grafana
+## Add Loki as a Data Source in Grafana
 
 1. Open **Grafana → Connections → Data Sources → Add Data Source**.
 2. Choose **Loki**.
@@ -234,7 +234,7 @@ You can now explore logs under **Explore → Logs**.
 
 ---
 
-## 📚 References
+## References
 
 - [Loki Docs](https://grafana.com/docs/loki/latest/)
 - [Alloy Docs](https://grafana.com/docs/alloy/latest/)
