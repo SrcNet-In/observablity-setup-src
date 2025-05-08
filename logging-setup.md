@@ -1,20 +1,20 @@
 # Observability Setup with Loki & Alloy in Kubernetes
 
-This guide walks you through deploying **Grafana Loki** for log aggregation and **Grafana Alloy** for log collection in Kubernetes. Assuming **Grafana** is already installed and accessible.
+This guide walks you through deploying **Grafana Loki** for log aggregation and **Grafana Alloy** for log collection in Kubernetes. It is assumed that **Grafana** is already installed and accessible.
 
 ---
 
 ## Tools Used
 
+- **Grafana**: For visualizing logs using Loki as a data source.
 - **Grafana Loki**: A log aggregation system tailored for Kubernetes.
 - **Grafana Alloy**: A lightweight, flexible collector for logs, metrics, and traces.
-- **Grafana**: For visualizing logs using Loki as a data source.
 
 ---
 
 ## Loki Installation (Monolithic Mode)
 
-We'll install Loki in **monolithic mode** for this example, which is simpler and ideal for small to medium clusters. 
+We will install Loki in **monolithic mode** for this example, which is simpler and ideal for small to medium clusters. 
 
 ### 1. Create Namespace
 
@@ -123,18 +123,6 @@ For more details on deployment modes, [see the Loki deployment modes documentati
 
 ---
 
-## Storage & Retention
-
-Loki can use object storage like:
-
-- **Amazon S3**
-- **Google Cloud Storage (GCS)**
-- **Azure Blob**
-
-> **Compression**: Loki **automatically compresses logs using Snappy** before storing them in object storage.
-
----
-
 ## ⚙️ Configure Alloy for Log Collection
 
 ### 1. Download Default Alloy Values
@@ -220,7 +208,6 @@ alloy:
 ```bash
 helm install alloy grafana/alloy -n monitoring -f values.yaml
 ```
-
 ---
 
 ## Add Loki as a Data Source in Grafana
@@ -234,6 +221,150 @@ You can now explore logs under **Explore → Logs**.
 
 ---
 
+## Storage, Retention & Archive
+
+Loki can use object storage like:
+
+- **Amazon S3**
+- **Google Cloud Storage (GCS)**
+- **Azure Blob**
+
+
+####  Example: Store Logs in Amazon S3 with a 60-Day Retention Period
+ 
+```yaml
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  schemaConfig:
+    configs:
+      - from: "2025-04-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h  
+  storage_config:
+    aws:
+      s3: s3://my-loki-bucket
+      s3forcepathstyle: true
+      region: us-east-1
+  limits_config:
+    allow_structured_metadata: true
+    volume_enabled: true
+    retention_period: 1440h       # 60 days
+  compactor:
+    enabled: true
+    retention_enabled: true
+    compaction_interval: 10m 
+    shared_store: s3
+  ruler:
+    enable_api: true
+deploymentMode: SingleBinary
+singleBinary:
+  replicas: 1
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+ingester:
+  replicas: 0
+querier:
+  replicas: 0
+queryFrontend:
+  replicas: 0
+queryScheduler:
+  replicas: 0
+distributor:
+  replicas: 0
+compactor:
+  replicas: 0
+indexGateway:
+  replicas: 0
+bloomCompactor:
+  replicas: 0
+bloomGateway:
+  replicas: 0
+```
+#### Sample s3 lifecycle policy
+```hcl
+{
+  "Rules": [
+    {
+      "ID": "ArchiveToGlacierAfter60Days",
+      "Filter": { "Prefix": "" },
+      "Status": "Enabled",
+      "Transitions": [
+        {
+          "Days": 60,
+          "StorageClass": "GLACIER"
+        }
+      ],
+      "Expiration": {
+        "Days": 120     # optional
+      }
+    }
+  ]
+}
+```
+#### Sample Timeline
+- **Day 0 – Ingestion & Initial S3 Upload**  
+  Loki writes each new log as a TSDB chunk + index file and **immediately** pushes them into your S3 bucket.
+
+- **Day 60 – S3 Lifecycle Transition to Glacier**  
+  Your S3 lifecycle rule moves every object older than 60 days from “hot” S3 into Glacier (or Glacier Deep Archive) for cost-effective archiving.
+
+- **Day 61 – Loki Retention Enforcement**  
+  The Loki Compactor scans for data older than 60 days and **drops its index pointers** so those logs no longer appear in Grafana queries—but **does not** delete the S3/Glacier objects.
+
+- **Optional: Day 120 – S3 Permanent Deletion**  
+  *(Skip this if you want to retain data in Glacier forever.)*  
+  A second S3 rule can expire (delete) Glacier objects after e.g. 120 days—otherwise they remain indefinitely.
+
+- **Restoring & Re-ingesting Old Logs (e.g., 3 Years Later)**
+  1. **Glacier Restore → S3**  
+  2. **Download Restored Files Locally**
+      ```bash
+      aws s3 sync s3://my-loki-bucket/chunks/ ./local-chunks/ --recursive --include="*.chunk" --force-glacier-transfer
+      aws s3 sync s3://my-loki-bucket/index/ ./local-index/ --recursive --include="*.index" --force-glacier-transfer
+     ```  
+  3. **Decode TSDB Chunks to Plain Logs**  
+     Use Prometheus’s built-in tool:  
+     ```bash
+     promtool tsdb dump \
+       --block-dir=./local-chunks/<block-id> \
+       --output=./extracted-logs/<block-id>.txt
+     ```  
+  4. **Prepare Alloy Replay Config**  
+     Mount `./extracted-logs/` into your Alloy pod, then modify grafana config:
+     ```hcl
+     local.file_match "old_logs" {
+       path_targets = [{ __path__ = "/mnt/extracted-logs/**/*.txt" }]
+     }
+     loki.source.file "replay_old" {
+       targets    = local.file_match.old_logs.targets
+       forward_to = [loki.write.out]
+     }
+     loki.write "out" {
+       endpoint { url = "http://loki:3100/loki/api/v1/push" }
+       timeout  = "30s"
+     }
+     ```
+  5. **Deploy Alloy & Replay**  
+  6. **Query in Grafana**  
+
+
+> **Compression**: Loki **automatically compresses logs using Snappy** before storing them in object storage.
+For more details [Loki Snappy Compression Algorithm](https://grafana.com/docs/enterprise-logs/latest/config/bp-configure/#use-snappy-compression-algorithm).
+
+
+---
+
+
 ## References
 
 - [Loki Docs](https://grafana.com/docs/loki/latest/)
@@ -241,3 +372,4 @@ You can now explore logs under **Explore → Logs**.
 - [Loki Deployment Modes](https://grafana.com/docs/loki/latest/get-started/deployment-modes/)
 - [Loki Deployment Guides](https://grafana.com/docs/loki/latest/setup/install/helm/)
 - [Loki Architecture](https://grafana.com/docs/loki/latest/get-started/architecture/)
+- [Loki Storage](https://grafana.com/docs/enterprise-logs/latest/config/storage/)
