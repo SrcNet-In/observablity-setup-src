@@ -123,7 +123,7 @@ For more details on deployment modes, [see the Loki deployment modes documentati
 
 ---
 
-## ⚙️ Configure Alloy for Log Collection
+## Configure Alloy for Log Collection
 
 ### 1. Download Default Alloy Values
 
