@@ -311,7 +311,7 @@ bloomGateway:
   ]
 }
 ```
-#### Sample Timeline
+#### Data Lifecycle Overview
 - **Day 0 – Ingestion & Initial S3 Upload**  
   Loki writes each new log as a TSDB chunk + index file and **immediately** pushes them into your S3 bucket.
 
