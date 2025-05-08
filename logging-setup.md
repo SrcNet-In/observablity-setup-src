@@ -290,7 +290,7 @@ bloomCompactor:
 bloomGateway:
   replicas: 0
 ```
-#### Sample s3 lifecycle policy
+#### Sample Amazon S3 lifecycle policy
 ```hcl
 {
   "Rules": [
