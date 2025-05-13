@@ -248,9 +248,8 @@ loki:
           period: 24h  
   storage_config:
     aws:
-      s3: s3://my-loki-bucket
+      s3: s3://access_key:secret_key@region/bucket_name
       s3forcepathstyle: true
-      region: us-east-1
   limits_config:
     allow_structured_metadata: true
     volume_enabled: true
