@@ -4,64 +4,77 @@
 
 ## What is Kepler?
 
-**Kepler** stands for **Kubernetes-based Efficient Power Level Exporter**. It is an open-source project designed to estimate and monitor the energy consumption and CO₂ emissions of workloads running within Kubernetes clusters. 
-By leveraging various data sources and machine learning models, Kepler shows detailed power usage for each container and pod.
+**Kepler** stands for **Kubernetes-based Efficient Power Level Exporter**. It is a Prometheus exporter, an open-source project designed to estimate and monitor the energy consumption and CO₂ emissions of workloads running within Kubernetes clusters.
+It uses eBPF to monitor CPU performance counters and Linux kernel tracepoints. Data and stats from sysfs can be fed into ML models to estimate energy consumption by Pods.
 
 ---
 
-## How Kepler Works
+## How Kepler Works?
+
+Kepler uses different methods to collect power data and share it through Prometheus.
+
+### Requirements
+
+| Component            | Requirement                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| **Linux Kernel**     | `>= 5.4` (eBPF features used by Kepler require a modern kernel version)                      |
+| **eBPF Programs**    | - Must run in **privileged containers**                                                      |
+|                      | - Requires **CAP_SYS_ADMIN**, **CAP_BPF** capabilities                                       |
+| **Metrics Exporter** | Needs a `ClusterRole` and `RoleBinding` with `get`, `list`, and `watch` on pods, nodes/metrics, nodes/proxy, nodes/stats |
+| **Prometheus**       | Prometheus must be configured to scrape Kepler metrics via `ServiceMonitor` |
+| **Grafana**          | Prometheus configured as data source                                               |
+| **Helm**             | Helm v3 for deploying Kepler and Prometheus stack                                           |
 
 ### Data Collection Methods
 
-Kepler employs multiple approaches to gather power-related data:
+| Data Source                                | Description                                                  | Permissions Required               |
+| ------------------------------------------ | ------------------------------------------------------------ | ---------------------------------- |
+| **eBPF (Extended Berkeley Packet Filter)** | Kernel-level monitoring of process counters and system stats | Privileged Container               |
+| **Intel RAPL**                             | CPU/DRAM power consumption                                   | Read access to RAPL MSRs           |
+| **NVIDIA NVML**                            | GPU power usage data                                         | Requires NVIDIA drivers installed  |
+| **SPECPower Estimates**                    | Power usage predicted using benchmark correlations           | No special permissions             |
+| **Hardware Monitor Sensors**               | Temperature, voltage, and power info from system sensors     | Host-level access                  |
+| **IPMI**                                   | Platform-wide power metrics via firmware interfaces          | May require root / elevated access |
 
-1. **eBPF (Extended Berkeley Packet Filter)**: Utilizes eBPF programs to monitor performance counters and other system stats, providing detailed insights into resource utilization at the process level.
+### How ML Models Help
 
-2. **Hardware Counters**:  
-   - **CPU and DRAM Power**:  
-     - Accesses Intel Running Average Power Limit (RAPL) metrics to measure power consumption for both CPU and DRAM.  
-   - **GPU Power**:  
-     - Leverages NVIDIA Management Library (NVML) to retrieve power usage data for GPUs.  
-   - **SPECPower-based Estimates**:  
-     - Uses SPECPower benchmarks to estimate power consumption based on system performance.  
-   - **Hardware Monitor Sensors**:  
-     - Gathers data from various hardware sensors to monitor power usage across different components (e.g., temperature, voltage, and fan speed).
+In environments where real-time hardware metrics (e.g., RAPL, NVML) are unavailable, Kepler uses machine learning models (typically regression models) trained on benchmarked datasets like SPECPower.
 
-3. **Platform Power Meters**:  
-   - Built into the CPU or system-on-chip (SoC) to measure the overall power consumption of the system.  
-   - Collects power consumption data via system-level interfaces:  
-     - **Advanced Configuration and Power Interface (ACPI)**: Monitors system-wide power states, such as the total power used by the CPU, memory, and other components.  
-     - **Intelligent Platform Management Interface (IPMI)**: Provides overall power consumption metrics for the entire platform.
+These models estimate power consumption based on inputs like:
 
-4. **Trained Power Models**: In scenarios where real-time power metrics are unavailable, Kepler employs regression-based machine learning models trained on benchmark data to estimate power consumption.
+- CPU Cycles
+- Memory Usage
+- I/O Metrics
+- Network Throughput
 
-These diverse data sources enable Kepler to provide accurate energy consumption metrics across various environments.
+This ensures broader compatibility, allowing Kepler to work across diverse infrastructure types—even virtual machines or systems without energy interfaces
+
+**Note:** Kepler currently relies heavily on **eBPF** and requires low-level system access (i.e., **privileged container mode**) to function correctly.
 
 ---
 
 ## Understanding eBPF
 
-**eBPF** (Extended Berkeley Packet Filter) is a technology that allows programs to run in the kernel space of an operating system without modifying the kernel itself. 
-It enables safe and efficient monitoring and manipulation of kernel behavior. 
-eBPF programs are attached to various hooks in the kernel, such as system calls, tracepoints, and network events. 
+**eBPF** (Extended Berkeley Packet Filter) is a technology that allows programs to run in the kernel space of an operating system without modifying the kernel itself.
+It enables safe and efficient monitoring and manipulation of kernel behavior.
+eBPF programs are attached to various hooks in the kernel, such as system calls, tracepoints, and network events.
 When these events occur, the eBPF programs are triggered to execute.
 
 In the context of Kepler, eBPF is used to collect fine-grained power consumption metrics by accessing hardware performance counters and other system statistics. This enables accurate estimation of energy usage at the container level.
 
 ---
-### Kepler Architecture 
+
+### Kepler Architecture
 
 ![Kepler Architecture](./images/kepler-arch.png)
 
-*Source: [https://sustainable-computing.io/design/architecture/](https://sustainable-computing.io/design/architecture/)*
+_Source: [https://sustainable-computing.io/design/architecture/](https://sustainable-computing.io/design/architecture/)_
 
 ---
 
-## 🛠️ Installation in Kubernetes
+## Installation of Kepler
 
-### High Privilege Mode
-
-In high privilege mode, Kepler utilizes eBPF to gather detailed power consumption metrics. This requires elevated privileges to load and execute eBPF programs within the kernel.
+Kepler utilizes eBPF to gather detailed power consumption metrics. This requires elevated privileges to load and execute eBPF programs within the kernel.
 
 **Installation Steps**:
 
@@ -82,12 +95,7 @@ In high privilege mode, Kepler utilizes eBPF to gather detailed power consumptio
      --namespace monitoring \
      --set serviceMonitor.enabled=true \
      --set serviceMonitor.labels.release=prometheus \
-     --set securityContext.runAsUser=0 \
-     --set securityContext.runAsGroup=0 \
-     --set securityContext.fsGroup=0 \
-     --set securityContext.capabilities.add[0]=CAP_BPF \
-     --set securityContext.capabilities.add[1]=CAP_NET_ADMIN \
-     --set securityContext.capabilities.add[2]=CAP_SYS_ADMIN
+     --set securityContext.privilaged=true
    ```
 
 3. **Verify Installation**:
@@ -98,64 +106,8 @@ In high privilege mode, Kepler utilizes eBPF to gather detailed power consumptio
 
 4. **Integrate with Grafana**:
 
-   - Import Kepler dashboard JSON into Grafana.
-   - Refresh the browser window to load the new dashboard.
-
-### Low Privilege Mode
-
-In low privilege mode, Kepler operates with reduced functionality due to limited access to eBPF and kernel resources. It relies on alternative methods, such as trained power models, to estimate power consumption.
-
-**Installation Steps**:
-
-1. **Install Kepler**:
-
-   ```bash
-   helm repo add kepler https://sustainable-computing-io.github.io/kepler-helm-chart
-   helm repo update
-   helm install kepler kepler/kepler \
-     --namespace monitoring \
-     --set serviceMonitor.enabled=true \
-     --set serviceMonitor.labels.release=prometheus \
-     --set securityContext.runAsUser=1000 \
-     --set securityContext.runAsGroup=1000 \
-     --set securityContext.fsGroup=1000 \
-     --set securityContext.capabilities.drop[0]=ALL 
-   ```
-
-3. **Verify Installation**:
-
-   ```bash
-   kubectl get pods -n monitoring
-   ```
-
-4. **Integrate with Grafana**:
-
-   - Import Kepler dashboard JSON into Grafana.
-   - Refresh the browser window to load the new dashboard..
-
----
-
-### Capabilities in Kepler
-
-Kepler utilizes specific Linux capabilities to access system-level resources for accurate power consumption monitoring. These capabilities enable Kepler to gather detailed metrics, such as CPU and memory usage, and to interact with hardware components like GPUs.
-
-| Capability       | Role in Kepler's Functionality                             |
-|------------------|------------------------------------------------------------|
-| `CAP_BPF`        | Enables eBPF-based performance monitoring                  |
-| `CAP_NET_ADMIN`  | Allows network-related power consumption monitoring        |
-| `CAP_SYS_ADMIN`  | Grants access to hardware-level power metrics and GPU data |
-
----
-
-## Accuracy Comparison
-
-| Step                     | High Privilege Mode                             | Low Privilege Mode                                  |
-|--------------------------|-------------------------------------------------|-----------------------------------------------------|
-| **eBPF Access**          | Full access                                     | Limited or none                                     |
-| **Kernel Headers**       | Required                                        | Not required                                        |
-| **Container Capabilities** | `CAP_BPF`, `CAP_NET_ADMIN`, `CAP_SYS_ADMIN`    | Limited capabilities                                |
-| **Power Estimation**     | Accurate using eBPF                            | Estimated using alternative methods                 |
-| **Grafana Integration**  | Full integration with detailed metrics          | Limited integration with basic metrics              |
+   1. Import Kepler dashboard JSON into Grafana.
+   2. Refresh the browser window to load the new dashboard.
 
 ---
 
@@ -167,3 +119,4 @@ Kepler utilizes specific Linux capabilities to access system-level resources for
 - [Kepler on CNCF](https://www.cncf.io/projects/kepler/)
 - [Kepler Architecture Overview](https://www.cncf.io/blog/2023/10/11/exploring-keplers-potentials-unveiling-cloud-application-power-consumption/)
 - [eBPF Wikipedia](https://en.wikipedia.org/wiki/EBPF)
+- [Kepler pod fail when no access to eBPF](https://github.com/sustainable-computing-io/kepler/discussions/1147)
