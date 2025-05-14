@@ -170,7 +170,6 @@ grafana:
     enabled: true
     size: 5Gi
     storageClassName: nfs-default
-    existingClaim: grafana-pvc
 
 alertmanager:
   alertmanagerSpec:
