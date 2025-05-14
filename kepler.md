@@ -17,7 +17,7 @@ Kepler uses different methods to collect power data and share it through Prometh
 
 | Component            | Requirement                                                                                  |
 | -------------------- | -------------------------------------------------------------------------------------------- |
-| **Linux Kernel**     | `>= 5.4` (eBPF features used by Kepler require a modern kernel version)                      |
+| **Linux Kernel**     | `>= 5.12` (eBPF features used by Kepler require a modern kernel version)                      |
 | **eBPF Programs**    | - Must run in **privileged containers**                                                      |
 |                      | - Requires **CAP_SYS_ADMIN**, **CAP_BPF** capabilities                                       |
 | **Metrics Exporter** | Needs a `ClusterRole` and `RoleBinding` with `get`, `list`, and `watch` on pods, nodes/metrics, nodes/proxy, nodes/stats |
