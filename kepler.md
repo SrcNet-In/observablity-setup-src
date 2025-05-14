@@ -33,7 +33,6 @@ Kepler uses different methods to collect power data and share it through Prometh
 | **Intel RAPL**                             | CPU/DRAM power consumption                                   | Read access to RAPL MSRs           |
 | **NVIDIA NVML**                            | GPU power usage data                                         | Requires NVIDIA drivers installed  |
 | **SPECPower Estimates**                    | Power usage predicted using benchmark correlations           | No special permissions             |
-| **Hardware Monitor Sensors**               | Temperature, voltage, and power info from system sensors     | Host-level access                  |
 | **IPMI**                                   | Platform-wide power metrics via firmware interfaces          | May require root / elevated access |
 
 ### How ML Models Help
@@ -95,7 +94,7 @@ Kepler utilizes eBPF to gather detailed power consumption metrics. This requires
      --namespace monitoring \
      --set serviceMonitor.enabled=true \
      --set serviceMonitor.labels.release=prometheus \
-     --set securityContext.privilaged=true
+     --set securityContext.privileged=true
    ```
 
 3. **Verify Installation**:
